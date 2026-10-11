@@ -7,10 +7,8 @@ A pomodoro timer in the [Hyprsimple](https://github.com/rizukirr/hyprsimple) bar
 ## Install
 
 ```sh
-hyprsimple-plugin OWNER/hyprsimple-pomodoro
+hyprsimple-plugin rizukirr/hyprsimple-pomodoro
 ```
-
-Replace `OWNER` with the account this repository is published under. From a local clone, run `hyprsimple-plugin install --local /path/to/hyprsimple-pomodoro`.
 
 It needs Hyprsimple 0.4.2 or later. It installs no packages and starts no background service.
 
