@@ -130,10 +130,9 @@ harness '
             require(root.panel.settingsOpen && root.failures === 0, "settings view loads")
             root.panel.setSettingsOpen(false)
             service.toggle()
+            require(service.status === "running", "resume")
             service.skip()
-            require(service.status === "over" && service.timer.count === 0, "skip does not count")
-            service.toggle()
-            require(service.phase === "break" && service.status === "running", "sequence carries on")
+            require(service.phase === "break" && service.status === "running" && service.timer.count === 0, "skip starts the break without counting")
             console.log("SMOKE-PASS")
             quit.start()
 '
@@ -144,38 +143,59 @@ jq -e '.phase == "break" and .status == "running" and .session == 1 and .endsAt 
 [[ ! -e $CALLS ]]
 echo 'ok - real service, widget, Panel.qml and both views: a round, the settings and the saved files'
 
-# Second start: a focus round that ran out while the bar was down. It comes
-# back over, counted once and announced, and a key can reset it over IPC.
+# Second start: a focus round with a second left. It runs into the break by
+# itself, counted and announced once, and a key can stop it over IPC.
 day=$(date +%F)
-jq -n --arg day "$day" '{phase:"focus",status:"running",endsAt:1000,remaining:0,session:4,count:2,day:$day}' >"$STATE"
+jq -n --arg day "$day" --argjson ends "$(($(date +%s%3N) + 1500))" '{phase:"focus",status:"running",endsAt:$ends,remaining:0,session:1,count:2,day:$day}' >"$STATE"
 printf '{"focus": 50, "sessions": 4, "longBreak": 20\n' >"$CONFIG"
 harness '
             if (root.stage === 0) {
                 root.stage = 1
                 require(service.config.focus === 25 && service.config.longBreak === 30, "a damaged settings file falls back to defaults")
-                require(service.status === "over" && service.timer.count === 3, "expired while down, counted once")
-                require(service.label.startsWith("+"), "overrun shown")
-                require(service.actionLabel === "Start long break", "the fourth session leads to the long break")
-                console.log("READY")
-            } else if (root.stage === 1 && service.status === "idle") {
+                require(service.status === "running" && service.phase === "focus", "a round in progress is restored")
+            } else if (root.stage === 1 && service.phase === "break") {
                 root.stage = 2
-                require(service.timer.count === 3 && service.timer.session === 1, "reset keeps the count")
+                require(service.status === "running" && service.timer.count === 3, "the break started by itself and the round was counted")
+                require(service.label === "05:00" || service.label === "04:59", "the break has its full length")
+                console.log("READY")
+            } else if (root.stage === 2 && service.status === "idle") {
+                root.stage = 3
+                require(service.timer.count === 3 && service.timer.session === 1 && service.phase === "focus", "reset keeps the count")
                 console.log("SMOKE-PASS")
                 quit.start()
             }
 '
 timeout 20 qs -p "$TMP/shell" --no-color >"$TMP/log" 2>&1 &
 qs_pid=$!
-for _ in $(seq 50); do grep -q 'READY\|SMOKE-FAIL' "$TMP/log" && break; sleep 0.1; done
+for _ in $(seq 80); do grep -q 'READY\|SMOKE-FAIL' "$TMP/log" && break; sleep 0.1; done
 qs -p "$TMP/shell" ipc show | grep -q 'function toggle(): void'
 qs -p "$TMP/shell" ipc call pomodoro reset
 wait "$qs_pid" || { cat "$TMP/log"; exit 1; }
 qs_pid=''
 passed
-grep -qx -- '-a Pomodoro Focus round done Time for a 30 minute long break.' "$CALLS"
+grep -qx -- '-a Pomodoro Focus round done Break started, 5 minutes.' "$CALLS"
 [[ $(wc -l <"$CALLS") == 1 ]]
 jq -e --arg day "$day" '.status == "idle" and .count == 3 and .day == $day' "$STATE" >/dev/null
-echo 'ok - a round that ended while the bar was down is counted and announced once, and IPC reset works'
+echo 'ok - a focus round runs into its break by itself, counted and announced once, and IPC reset stops it'
+
+# Third start: the last focus round of a cycle ended hours ago with the bar
+# down. The long break has run out too, so the timer stops there.
+jq -n --arg day "$day" '{phase:"focus",status:"running",endsAt:1000,remaining:0,session:4,count:2,day:$day}' >"$STATE"
+rm "$CONFIG" "$CALLS"
+harness '
+            if (root.stage !== 0) return
+            root.stage = 1
+            require(service.status === "idle" && service.phase === "longBreak", "stopped at the phase that was missed")
+            require(service.timer.count === 3 && service.actionLabel === "Start long break", "the finished round is counted once")
+            console.log("SMOKE-PASS")
+            quit.start()
+'
+run
+passed
+grep -qx -- '-a Pomodoro Focus round done The timer stopped while you were away.' "$CALLS"
+[[ $(wc -l <"$CALLS") == 1 ]]
+printf '{"focus": 50}\n' >"$CONFIG"
+echo 'ok - a phase missed entirely while the bar was down stops the timer and says so'
 
 manager disable pomodoro
 manager enable pomodoro

@@ -20,19 +20,19 @@ A cycle is a number of focus rounds, each followed by a break. The last round of
 focus, break, focus, break, focus, long break, then again
 ```
 
-When a phase ends you get a notification and the timer waits for you. The widget turns to the accent color and counts up, such as `+02:30`, so you can finish a thought and still see how long you have run over. The next phase starts when you say so.
+You start it once. From then on each phase runs into the next by itself, with a notification at every change, until you pause or reset it.
 
-The timer follows the clock. A suspended laptop or a restarted bar does not stretch or lose a round, and a round that ended while the bar was down is counted when it comes back.
+The timer follows the clock. A suspended laptop or a restarted bar does not stretch or lose a round. If you come back after a whole phase has gone by unseen, such as a laptop left asleep for hours, the timer stops there instead of running on and counting rounds nobody worked.
 
 ## Use
 
 | Action | Result |
 |---|---|
 | Click the widget | Open the panel |
-| Middle click the widget | Start, pause, resume, or start the next phase |
+| Middle click the widget | Start, pause or resume |
 | Space in the panel | The same as middle click |
-| `n` in the panel | Skip: end the phase now without counting it |
-| `r` in the panel | Reset to the first session |
+| `n` in the panel | Skip: start the next phase now without counting this one |
+| `r` in the panel | Reset: stop, and go back to the first session |
 | `s` in the panel | Open settings, or go back |
 | Escape | Leave settings, then close the panel |
 
@@ -67,7 +67,7 @@ An edit takes effect without restarting the bar. A missing file or key, or a val
 The plugin binds no keys. Add the ones you want to `~/.config/hypr/bindings/applications.lua`:
 
 ```lua
-hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd("qs -p " .. vars.bar .. " ipc call pomodoro toggle"), { description = "Pomodoro: start, pause or next" })
+hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd("qs -p " .. vars.bar .. " ipc call pomodoro toggle"), { description = "Pomodoro: start or pause" })
 hl.bind("SUPER + CTRL + P", hl.dsp.exec_cmd(vars.barPanel .. "pomodoro"), { description = "Pomodoro (panel)" })
 ```
 
@@ -75,9 +75,9 @@ Three actions are callable under the target `pomodoro`:
 
 | Action | Does |
 |---|---|
-| `toggle` | Start a focus round, pause, resume, or start the next phase when one has ended |
-| `skip` | End the current phase now without counting it |
-| `reset` | Go back to the first session, keeping today's count |
+| `toggle` | Start, pause or resume |
+| `skip` | Start the next phase now without counting the current one |
+| `reset` | Stop and go back to the first session, keeping today's count |
 
 From a terminal or a script:
 

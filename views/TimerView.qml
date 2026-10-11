@@ -28,7 +28,6 @@ Column {
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         text: root.service.label
-        color: root.service.status === "over" ? Theme.accent : Theme.fg
         opacity: root.service.status === "paused" ? Theme.dimmed : 1
         font.pixelSize: 2 * Theme.fontSizeLarge
         font.weight: Font.Medium

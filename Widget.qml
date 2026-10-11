@@ -1,7 +1,7 @@
 import QtQuick
 import Hyprsimple
 
-// Left click opens the panel. Middle click starts, pauses or moves on.
+// Left click opens the panel. Middle click starts, pauses or resumes.
 Capsule {
     id: root
     required property var context
@@ -11,7 +11,6 @@ Capsule {
         icon: root.service.phase === "focus" ? "timer" : "weekend"
         label: root.service.status === "idle" ? "" : root.service.label
         active: root.context.panelOpen
-        highlighted: root.service.status === "over"
         dim: root.service.status === "paused"
         tooltip: root.service.status === "idle" ? "Pomodoro" : `${root.service.title}, ${root.service.sessionLabel.toLowerCase()}`
         onClicked: root.context.togglePanel()

@@ -23,7 +23,7 @@ Item {
     readonly property string phase: timer.phase
     readonly property string label: Pomodoro.format(Pomodoro.left(timer, config, now))
     readonly property string title: Pomodoro.title(timer)
-    readonly property string actionLabel: Pomodoro.actionLabel(timer, config)
+    readonly property string actionLabel: Pomodoro.actionLabel(timer)
     readonly property string sessionLabel: Pomodoro.sessionLabel(timer, config)
     readonly property string countLabel: Pomodoro.countLabel(timer)
 
@@ -66,12 +66,12 @@ Item {
         if (!root.restored) return
         root.now = Date.now()
         const current = Pomodoro.withDay(root.timer, Pomodoro.today(new Date(root.now)))
-        const expired = Pomodoro.expire(current, root.now)
-        if (expired !== current) {
-            const message = Pomodoro.notification(expired, root.config)
+        const advanced = Pomodoro.advance(current, root.config, root.now)
+        if (advanced !== current) {
+            const message = Pomodoro.notification(current, advanced, root.config)
             Quickshell.execDetached(["notify-send", "-a", "Pomodoro", message.title, message.body])
         }
-        root.commit(expired)
+        root.commit(advanced)
     }
 
     function act(change) {
@@ -81,7 +81,7 @@ Item {
     }
 
     function toggle() { root.act((state, now) => Pomodoro.toggle(state, root.config, now)) }
-    function skip() { root.act((state, now) => Pomodoro.skip(state, now)) }
+    function skip() { root.act((state, now) => Pomodoro.skip(state, root.config, now)) }
     function reset() { root.act(state => Pomodoro.reset(state)) }
 
     // False when the value is refused. A new length applies from the next phase.
@@ -127,7 +127,7 @@ Item {
     Timer {
         interval: 1000
         repeat: true
-        running: root.status === "running" || root.status === "over"
+        running: root.status === "running"
         onTriggered: root.refresh()
     }
 

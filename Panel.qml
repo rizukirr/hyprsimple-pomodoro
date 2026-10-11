@@ -3,7 +3,7 @@ import Hyprsimple
 import "views"
 
 // The timer, or its four settings.
-// Keys: Space starts, pauses or moves on, n skips, r resets, s switches to
+// Keys: Space starts, pauses or resumes, n skips, r resets, s switches to
 // settings and back, Esc leaves settings and then closes.
 PopupPanel {
     id: root
