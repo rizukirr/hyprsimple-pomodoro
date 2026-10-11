@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "pomodoro",
+  "name": "Pomodoro",
+  "version": "1.0.0",
+  "entryPoints": {
+    "service": "Service.qml",
+    "widget": "Widget.qml",
+    "panel": "Panel.qml"
+  },
+  "placement": "left",
+  "panelAliases": [
+    "pomodoro"
+  ]
+}
