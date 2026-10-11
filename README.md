@@ -2,6 +2,8 @@
 
 A pomodoro timer in the [Hyprsimple](https://github.com/rizukirr/hyprsimple) bar: focus rounds, short breaks and a long break after a set number of rounds.
 
+<img width="575" height="351" alt="2026-10-11-212700_screenshot" src="https://github.com/user-attachments/assets/8fd45d59-d128-4975-a2c3-de9e6fb8ca00" />
+
 ## Install
 
 ```sh
